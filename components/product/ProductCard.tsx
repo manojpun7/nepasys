@@ -17,6 +17,7 @@ type ProductType = {
   brand: string;
   category: string;
   thumbnail: string;
+  images: string[]
 };
 
 export default function ProductCard({ product }: { product: ProductType }) {
