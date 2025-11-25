@@ -1,66 +1,58 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import type { RootState } from "./store";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { ProductType } from "@/lib/types/Product";
 
-export interface Product {
-    id: number;
-    title: string;
-    description: string;
-    price: number;
-    discountPercentage: number;
-    rating: number;
-    stock: number;
-    brand: string;
-    category: string;
-    thumbnail: string;
-    images: string[];
+export interface ProductsState {
+  items: ProductType[];
+  limit: number;
+  loading: boolean;
+  hasMore: boolean;
 }
 
-export const fetchProducts = createAsyncThunk<Product[]>(
-    "products/fetchProducts",
-    async () => {
-        const res = await fetch(
-            "https://api.freeapi.app/api/v1/public/randomproducts"
-        );
-        const json = await res.json();
-        return json.data.data as Product[];
-    }
-);
-
-interface ProductState {
-    items: Product[];
-    loading: boolean;
-    error: string | null;
-}
-
-const initialState: ProductState = {
-    items: [],
-    loading: false,
-    error: null,
+const initialState: ProductsState = {
+  items: [],
+  limit: 10,
+  loading: false,
+  hasMore: true,
 };
 
+// Fetch products with limit
+export const fetchProducts = createAsyncThunk<ProductType[], number>(
+  "products/fetchProducts",
+  async (limit: number) => {
+    const res = await fetch(
+      `https://api.freeapi.app/api/v1/public/randomproducts?limit=${limit}`
+    );
+    const json = await res.json();
+    return json.data.data as ProductType[];
+  }
+);
+
 const productsSlice = createSlice({
-    name: "products",
-    initialState,
-    reducers: {},
-    extraReducers: (builder) => {
-        builder
-            .addCase(fetchProducts.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(fetchProducts.fulfilled, (state, action) => {
-                state.loading = false;
-                state.items = action.payload;
-            })
-            .addCase(fetchProducts.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.error.message || "Failed to fetch products";
-            });
+  name: "products",
+  initialState,
+  reducers: {
+    increaseLimit(state) {
+      state.limit += 10;
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchProducts.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(
+        fetchProducts.fulfilled,
+        (state, action: PayloadAction<ProductType[]>) => {
+          state.loading = false;
+          state.items = action.payload;
+          state.hasMore = action.payload.length >= state.limit;
+        }
+      )
+      .addCase(fetchProducts.rejected, (state) => {
+        state.loading = false;
+      });
+  },
 });
 
+export const { increaseLimit } = productsSlice.actions;
 export default productsSlice.reducer;
-
-export const selectProducts = (state: RootState) => state.products.items;
-export const selectLoading = (state: RootState) => state.products.loading;
-export const selectError = (state: RootState) => state.products.error;
