@@ -9,7 +9,7 @@ import ModeToggle from "../theme/ModeToggle"
 
 export default function Navbar() {
     return (
-        <div className="flex justify-evenly items-center m-1">
+        <div className="flex justify-evenly items-center m-1 sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b**">
             <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
                 NEPASYS Assignment !
             </h2>
