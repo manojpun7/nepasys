@@ -5,6 +5,8 @@ import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
+import { useAppDispatch } from "@/lib/store/hooks";
+import { addToCart } from "@/lib/cart/cartSlice";
 
 type ProductType = {
   id: number;
@@ -21,6 +23,20 @@ type ProductType = {
 };
 
 export default function ProductCard({ product }: { product: ProductType }) {
+
+    const dispatch = useAppDispatch();
+
+  const handleAdd = () => {
+    dispatch(
+      addToCart({
+        id: product.id,
+        title: product.title,
+        price: product.price,
+        thumbnail: product.thumbnail,
+        category: product.category,
+      })
+    );
+  };
   return (
     <Card className="rounded-xl overflow-hidden bg-card text-card-foreground border hover:shadow-xl transition-all duration-300">
       {/* Thumbnail */}
@@ -67,7 +83,7 @@ export default function ProductCard({ product }: { product: ProductType }) {
 
       {/* Footer */}
       <CardFooter className="p-4">
-        <Button className="w-full" variant="default">
+        <Button className="w-full" variant="default" onClick={handleAdd}>
           Add to Cart
         </Button>
       </CardFooter>

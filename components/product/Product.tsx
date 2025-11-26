@@ -2,24 +2,30 @@
 
 import { useEffect, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { fetchProducts, increaseLimit } from "@/lib/store/productsSlice";
+import { fetchProducts, increaseLimit } from "@/lib/store/product/productsSlice";
 import ProductCard from "@/components/product/ProductCard";
 import { SkeletonCard } from "../SkeletonCard";
 import { Button } from "@/components/ui/button";
+import { fetchCategories } from "@/lib/store/product/category/categorySlice";
 
 export default function ProductsPage() {
   const dispatch = useAppDispatch();
 
-  const { items, limit, loading, hasMore } = useAppSelector(
-    (state) => state.products
-  );
+  const { filteredItems, limit, loading, hasMore } = useAppSelector((state) => state.products);
+
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  
 
-  // Fetch products
+  // Fetch products when limit changes
   useEffect(() => {
     dispatch(fetchProducts(limit));
   }, [dispatch, limit]);
+
+  //fetch category
+  useEffect(() => {
+    dispatch(fetchCategories());
+  }, [dispatch]);
 
   // Infinite scroll
   useEffect(() => {
@@ -40,16 +46,14 @@ export default function ProductsPage() {
     };
   }, [dispatch, hasMore, loading]);
 
-
-  const isInitialLoad = items.length == 0 && loading;
+  const isInitialLoad = filteredItems.length === 0 && loading;
   const skeletonCount = loading ? 4 : 0;
 
   return (
     <div className="p-6">
-
       {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {items.map((product) => (
+        {filteredItems.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
 
