@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export function SkeletonCard() {
   return (
-    <div className="flex flex-col space-y-3 w-full">
+    <div className="flex flex-col space-y-3 w-full min-h-72"> {/* 18rem = 288px */}
       {/* Image Placeholder */}
       <Skeleton className="h-48 w-full rounded-xl" />
 
@@ -14,3 +14,4 @@ export function SkeletonCard() {
     </div>
   )
 }
+

@@ -2,34 +2,35 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { ProductType } from "@/lib/types/Product";
 
 // --------------------
-// STATE TYPE ✅
+// STATE TYPE
 // --------------------
 export interface ProductsState {
   items: ProductType[];
   filteredItems: ProductType[];
   limit: number;
-  loading: boolean;
+  loadingInitial: boolean; // true during first load
+  loadingMore: boolean;    // true when loading additional items
   hasMore: boolean;
   searchTerm: string;
   selectedCategory: string;
 }
 
 // --------------------
-// INITIAL STATE ✅
+// INITIAL STATE
 // --------------------
 const initialState: ProductsState = {
   items: [],
   filteredItems: [],
   limit: 10,
-  loading: false,
+  loadingInitial: false,
+  loadingMore: false,
   hasMore: true,
   searchTerm: "",
   selectedCategory: "All",
 };
 
 // --------------------
-// FETCH PRODUCTS THUNK ✅
-// includes category field
+// FETCH PRODUCTS THUNK
 // --------------------
 export const fetchProducts = createAsyncThunk<ProductType[], number>(
   "products/fetchProducts",
@@ -37,15 +38,13 @@ export const fetchProducts = createAsyncThunk<ProductType[], number>(
     const res = await fetch(
       `https://api.freeapi.app/api/v1/public/randomproducts?page=1&limit=${limit}&inc=category%252Cprice%252Cthumbnail%252Cimages%252Ctitle%252Cid`
     );
-
     const json = await res.json();
-    // ✅ Correct nested data access
     return json.data.data as ProductType[];
   }
 );
 
 // --------------------
-// REDUX SLICE ✅
+// REDUX SLICE
 // --------------------
 const productsSlice = createSlice({
   name: "products",
@@ -65,10 +64,6 @@ const productsSlice = createSlice({
       productsSlice.caseReducers.applyFilters(state);
     },
 
-    // --------------------
-    // COMBINED FILTERS ✅ (Not exported)
-    // Works on state.items
-    // --------------------
     applyFilters(state) {
       let temp = state.items;
 
@@ -82,38 +77,44 @@ const productsSlice = createSlice({
       }
 
       state.filteredItems = temp;
-    }
+    },
   },
 
   extraReducers: (builder) => {
     builder
       .addCase(fetchProducts.pending, (state) => {
-        state.loading = true;
+        // If no items yet, this is initial load
+        if (state.items.length === 0) {
+          state.loadingInitial = true;
+        } else {
+          state.loadingMore = true;
+        }
       })
 
-      .addCase(fetchProducts.fulfilled, (state, action: PayloadAction<ProductType[]>) => {
-        state.loading = false;
-        // ✅ Store full items list
-        state.items = action.payload;
-        state.hasMore = action.payload.length >= state.limit;
+      .addCase(
+        fetchProducts.fulfilled,
+        (state, action: PayloadAction<ProductType[]>) => {
+          state.loadingInitial = false;
+          state.loadingMore = false;
 
-        // ✅ Apply filters after data load
-        productsSlice.caseReducers.applyFilters(state);
-      })
+          state.items = action.payload;
+          state.hasMore = action.payload.length >= state.limit;
+
+          productsSlice.caseReducers.applyFilters(state);
+        }
+      )
 
       .addCase(fetchProducts.rejected, (state) => {
-        state.loading = false;
+        state.loadingInitial = false;
+        state.loadingMore = false;
       });
-  }
+  },
 });
 
 // --------------------
-// EXPORT ACTIONS ✅
+// EXPORT ACTIONS
 // --------------------
-export const {
-  increaseLimit,
-  setSearchTerm,
-  setCategoryFilter
-} = productsSlice.actions;
+export const { increaseLimit, setSearchTerm, setCategoryFilter } =
+  productsSlice.actions;
 
 export default productsSlice.reducer;

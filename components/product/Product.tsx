@@ -10,19 +10,22 @@ import { fetchCategories } from "@/lib/store/product/category/categorySlice";
 
 export default function ProductsPage() {
   const dispatch = useAppDispatch();
-
-  const { filteredItems, limit, loading, hasMore } = useAppSelector((state) => state.products);
-
-
   const bottomRef = useRef<HTMLDivElement | null>(null);
-  
+
+  const {
+    filteredItems,
+    limit,
+    hasMore,
+    loadingInitial,
+    loadingMore,
+  } = useAppSelector((state) => state.products);
 
   // Fetch products when limit changes
   useEffect(() => {
     dispatch(fetchProducts(limit));
   }, [dispatch, limit]);
 
-  //fetch category
+  // Fetch categories
   useEffect(() => {
     dispatch(fetchCategories());
   }, [dispatch]);
@@ -32,7 +35,7 @@ export default function ProductsPage() {
     if (!hasMore) return;
 
     const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && !loading) {
+      if (entries[0].isIntersecting && !loadingMore) {
         dispatch(increaseLimit());
       }
     });
@@ -44,11 +47,15 @@ export default function ProductsPage() {
       if (current) observer.unobserve(current);
       observer.disconnect();
     };
-  }, [dispatch, hasMore, loading]);
+  }, [dispatch, hasMore, loadingMore]);
 
-  const isInitialLoad = filteredItems.length === 0 && loading;
-  const skeletonCount = loading ? 4 : 0;
-
+  const isInitialLoad = filteredItems.length === 0 && loadingInitial;
+  const skeletonCount =
+    filteredItems.length === 0
+      ? 8
+      : loadingMore
+        ? 4
+        : 0;
   return (
     <div className="p-6">
       {/* Products Grid */}
@@ -58,24 +65,26 @@ export default function ProductsPage() {
         ))}
 
         {/* Skeletons */}
-        {loading &&
-          Array.from({ length: skeletonCount }).map((_, i) => (
-            <SkeletonCard key={`skeleton-${i}`} />
-          ))}
+        {Array.from({ length: skeletonCount }).map((_, i) => (
+          <SkeletonCard key={`skeleton-${i}`} />
+        ))}
+
       </div>
 
+      {/* Load More Button */}
       {hasMore && !isInitialLoad && (
         <div className="flex justify-center mt-8">
           <Button
             variant="outline"
             onClick={() => dispatch(increaseLimit())}
-            disabled={loading}
+            disabled={loadingMore}
           >
-            {loading ? "Loading..." : "Load More"}
+            {loadingMore ? "Loading..." : "Load More"}
           </Button>
         </div>
       )}
 
+      {/* Observer div for infinite scroll */}
       {hasMore && <div ref={bottomRef} className="h-10" />}
     </div>
   );
