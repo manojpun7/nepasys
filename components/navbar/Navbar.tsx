@@ -2,43 +2,44 @@
 
 import { Search, ShoppingCart } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { setSearchTerm } from "@/lib/store/product/productsSlice";
+import ModeToggle from "../theme/ModeToggle";
 
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import ModeToggle from "../theme/ModeToggle";
 
 export default function Navbar() {
   const dispatch = useAppDispatch();
-  const [query, setQuery] = useState("");
+  const router = useRouter();  // ✅ Next.js router for navigation
 
-  // 👇 Select cart totals from cart slice
-  const { totalQuantity, totalPrice } = useAppSelector((state) => state.cart);
+  const { totalQuantity } = useAppSelector(state => state.cart);
+  const [query, setQuery] = useState("");
 
   const handleSearch = (value: string) => {
     setQuery(value);
-    dispatch(setSearchTerm(value));
+    dispatch(setSearchTerm(value)); // ✅ updates search filter in product slice
   };
 
   return (
     <div className="flex justify-evenly items-center m-1 sticky top-0 z-10 bg-background/95 backdrop-blur border-b">
-      <h2 className="scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0">
+
+      {/* ✅ LOGO / HEADING */}
+      <h2  onClick={() => router.push("/")} className="text-3xl font-semibold tracking-tight cursor-pointer">
         NEPASYS Assignment!
       </h2>
 
+      {/* ✅ SEARCH INPUT */}
       <div className="grid w-full max-w-sm gap-6">
         <InputGroup>
           <InputGroupInput
             placeholder="Search..."
             value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              dispatch(setSearchTerm(e.target.value));
-            }}
+            onChange={(e) => handleSearch(e.target.value)}
           />
           <InputGroupAddon>
             <Search />
@@ -46,12 +47,16 @@ export default function Navbar() {
         </InputGroup>
       </div>
 
-      {/* 👇 Replace static (3) with dynamic totalQuantity */}
-      <div className="flex items-center gap-2">
+      {/* ✅ Clickable Cart Icon that Redirects to /cart */}
+      <div
+        onClick={() => router.push("/cart")} // ✅ redirect on click
+        className="flex items-center gap-2 cursor-pointer hover:opacity-70 transition"
+      >
         <ShoppingCart />
-        <p>({totalQuantity})</p>
+        <p className="text-lg font-medium">({totalQuantity})</p>
       </div>
 
+      {/* ✅ Dark Mode Toggle */}
       <ModeToggle />
     </div>
   );

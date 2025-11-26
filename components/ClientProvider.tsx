@@ -6,6 +6,7 @@ import { Provider } from "react-redux";
 import { store } from "@/lib/store/store";
 import { SidebarProvider, SidebarTrigger } from "./ui/sidebar";
 import { AppSidebar } from "./app-sidebar";
+import CartLoader from "@/lib/cartLoader";
 
 export default function ClientProviders({
   children,
@@ -20,6 +21,7 @@ export default function ClientProviders({
       disableTransitionOnChange
     >
       <Provider store={store}>
+        <CartLoader/>
         <Navbar />
         <SidebarProvider>
           <AppSidebar className="top-14 h-[calc(100vh-64px)]" />
