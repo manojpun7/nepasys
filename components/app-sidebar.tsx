@@ -20,7 +20,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { setCategoryFilter } from "@/lib/store/product/productsSlice";
+import { setCategoryFilter, setPriceFilter } from "@/lib/store/product/productsSlice";
 
 interface AppSidebarProps {
     className?: string
@@ -32,7 +32,7 @@ const ratings = ["All", "4 Stars & Up", "3 Stars & Up", "2 Stars & Up", "1 Star 
 export function AppSidebar({ className }: AppSidebarProps) {
     const { categories } = useAppSelector((state) => state.categories)
 
-    const dispatch  = useAppDispatch()
+    const dispatch = useAppDispatch()
 
     const categoryList = ["All", ...categories] // prepend "All"
 
@@ -92,7 +92,10 @@ export function AppSidebar({ className }: AppSidebarProps) {
                         <DropdownMenuContent>
                             <DropdownMenuRadioGroup
                                 value={selectedPrice}
-                                onValueChange={setSelectedPrice}
+                                onValueChange={(value) => {
+                                    setSelectedPrice(value);
+                                    dispatch(setPriceFilter(value)); // ✅ filter products without API
+                                }}
                             >
                                 {prices.map((p) => (
                                     <DropdownMenuRadioItem key={p} value={p}>
@@ -100,6 +103,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                                     </DropdownMenuRadioItem>
                                 ))}
                             </DropdownMenuRadioGroup>
+
                         </DropdownMenuContent>
                     </DropdownMenu>
 
