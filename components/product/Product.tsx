@@ -57,7 +57,7 @@ export default function ProductsPage() {
         ? 4
         : 0;
   return (
-    <div className="p-6">
+    <div className="pr-7 pt-5 pb-5">
       {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {filteredItems.map((product) => (

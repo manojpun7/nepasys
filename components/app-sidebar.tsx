@@ -177,10 +177,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
             <SidebarGroup className="mt-auto mb-15">
                 <div className="flex-col">
                     <div className="space-y-2 pt-10 mb-auto">
-                        <h5 className="text-sm leading-none font-medium">About Me</h5>
-                        <p className="text-muted-foreground text-sm">
-                            Manoj Pun - Web Developer !!
-                        </p>
+                        <h5 className="text-sm leading-none font-medium">Manoj Pun - Web Developer</h5>
                     </div>
                     <Separator className="my-4" />
                     <div className="flex h-5 items-center space-x-4 text-sm">
