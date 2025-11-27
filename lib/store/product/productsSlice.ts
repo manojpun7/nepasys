@@ -8,12 +8,14 @@ export interface ProductsState {
   items: ProductType[];
   filteredItems: ProductType[];
   limit: number;
-  loadingInitial: boolean; // true during first load
-  loadingMore: boolean;    // true when loading additional items
+  loadingInitial: boolean;
+  loadingMore: boolean;
   hasMore: boolean;
   searchTerm: string;
   selectedCategory: string;
-  selectedPrice: string;   // ✅ new field for price filter
+  selectedPrice: string;
+  selectedRating: string;   // Minimum rating filter
+  ratingSort: "high-to-low" | "low-to-high" | null; // New sorting field
 }
 
 // --------------------
@@ -28,7 +30,9 @@ const initialState: ProductsState = {
   hasMore: true,
   searchTerm: "",
   selectedCategory: "All",
-  selectedPrice: "All", // default
+  selectedPrice: "All",
+  selectedRating: "All",
+  ratingSort: null,  // Default: no sorting
 };
 
 // --------------------
@@ -38,7 +42,7 @@ export const fetchProducts = createAsyncThunk<ProductType[], number>(
   "products/fetchProducts",
   async (limit: number) => {
     const res = await fetch(
-      `https://api.freeapi.app/api/v1/public/randomproducts?page=1&limit=${limit}&inc=category%252Cprice%252Cthumbnail%252Cimages%252Ctitle%252Cid`
+      `https://api.freeapi.app/api/v1/public/randomproducts?page=1&limit=${limit}&inc=category%252Cprice%252Cthumbnail%252Cimages%252Ctitle%252Cid%252Crating`
     );
     const json = await res.json();
     return json.data.data as ProductType[];
@@ -63,6 +67,16 @@ const productsSlice = createSlice({
 
     setPriceFilter(state, action: PayloadAction<string>) {
       state.selectedPrice = action.payload;
+      productsSlice.caseReducers.applyFilters(state);
+    },
+
+    setRatingFilter(state, action: PayloadAction<string>) {
+      state.selectedRating = action.payload;
+      productsSlice.caseReducers.applyFilters(state);
+    },
+
+    setRatingSort(state, action: PayloadAction<"high-to-low" | "low-to-high" | null>) {
+      state.ratingSort = action.payload;
       productsSlice.caseReducers.applyFilters(state);
     },
 
@@ -101,10 +115,31 @@ const productsSlice = createSlice({
         });
       }
 
+      // Rating filter (minimum rating)
+      if (state.selectedRating !== "All") {
+        temp = temp.filter((p) => {
+          const rating = p.rating; // assuming p.rating is a number 1-5
+          switch (state.selectedRating) {
+            case "4 Stars & Up": return rating >= 4;
+            case "3 Stars & Up": return rating >= 3;
+            case "2 Stars & Up": return rating >= 2;
+            case "1 Star & Up": return rating >= 1;
+            default: return true;
+          }
+        });
+      }
+
       // Search filter
       if (state.searchTerm.trim()) {
         const term = state.searchTerm.toLowerCase();
         temp = temp.filter((p) => p.title.toLowerCase().includes(term));
+      }
+
+      // Rating sort
+      if (state.ratingSort === "high-to-low") {
+        temp = temp.slice().sort((a, b) => b.rating - a.rating);
+      } else if (state.ratingSort === "low-to-high") {
+        temp = temp.slice().sort((a, b) => a.rating - b.rating);
       }
 
       state.filteredItems = temp;
@@ -123,10 +158,8 @@ const productsSlice = createSlice({
       .addCase(fetchProducts.fulfilled, (state, action: PayloadAction<ProductType[]>) => {
         state.loadingInitial = false;
         state.loadingMore = false;
-
         state.items = action.payload;
         state.hasMore = action.payload.length >= state.limit;
-
         productsSlice.caseReducers.applyFilters(state);
       })
       .addCase(fetchProducts.rejected, (state) => {
@@ -139,7 +172,13 @@ const productsSlice = createSlice({
 // --------------------
 // EXPORT ACTIONS
 // --------------------
-export const { increaseLimit, setSearchTerm, setCategoryFilter, setPriceFilter } =
-  productsSlice.actions;
+export const {
+  increaseLimit,
+  setSearchTerm,
+  setCategoryFilter,
+  setPriceFilter,
+  setRatingFilter,
+  setRatingSort, // new action
+} = productsSlice.actions;
 
 export default productsSlice.reducer;

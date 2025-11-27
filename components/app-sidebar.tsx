@@ -5,7 +5,7 @@ import {
     SidebarGroup,
     SidebarGroupContent,
     SidebarGroupLabel,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 import {
     DropdownMenu,
@@ -15,35 +15,31 @@ import {
     DropdownMenuRadioGroup,
     DropdownMenuRadioItem,
     DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
-import { Button } from "@/components/ui/button"
-import { useState } from "react"
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { setCategoryFilter, setPriceFilter } from "@/lib/store/product/productsSlice";
+import { setCategoryFilter, setPriceFilter, setRatingSort } from "@/lib/store/product/productsSlice";
 
 interface AppSidebarProps {
-    className?: string
+    className?: string;
 }
 
-const prices = ["All", "$0 - $100", "$101 - $500", "$501 - $1000", "$1000+"]
-const ratings = ["All", "4 Stars & Up", "3 Stars & Up", "2 Stars & Up", "1 Star & Up"]
+const prices = ["All", "$0 - $100", "$101 - $500", "$501 - $1000", "$1000+"];
+const ratingSortOptions = ["All", "High to Low", "Low to High"]; // ✅ added "All"
 
 export function AppSidebar({ className }: AppSidebarProps) {
-    const { categories } = useAppSelector((state) => state.categories)
+    const { categories } = useAppSelector((state) => state.categories);
+    const dispatch = useAppDispatch();
+    const categoryList = ["All", ...categories];
 
-    const dispatch = useAppDispatch()
-
-    const categoryList = ["All", ...categories] // prepend "All"
-
-    const [selectedCategory, setSelectedCategory] = useState("All")
-    const [selectedPrice, setSelectedPrice] = useState("All")
-    const [selectedRating, setSelectedRating] = useState("All")
+    const [selectedCategory, setSelectedCategory] = useState("All");
+    const [selectedPrice, setSelectedPrice] = useState("All");
+    const [selectedRatingSort, setSelectedRatingSort] = useState("All");
 
     return (
-        <Sidebar
-            className={`fixed left-0 w-64 bg-card text-card-foreground shadow-md z-50 ${className}`}
-        >
+        <Sidebar className={`fixed left-0 w-64 bg-card text-card-foreground shadow-md z-50 ${className}`}>
             <SidebarGroup className="mt-4">
                 <SidebarGroupLabel>Filters</SidebarGroupLabel>
                 <DropdownMenuSeparator />
@@ -52,21 +48,18 @@ export function AppSidebar({ className }: AppSidebarProps) {
                     {/* Category Dropdown */}
                     <DropdownMenu>
                         <DropdownMenuLabel>Category</DropdownMenuLabel>
-
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" className="w-full justify-between">
                                 {selectedCategory}
                             </Button>
                         </DropdownMenuTrigger>
-
                         <DropdownMenuContent>
                             <DropdownMenuRadioGroup
                                 value={selectedCategory}
-                                onValueChange={(value) => {
+                                onValueChange={(value: string) => {
                                     setSelectedCategory(value);
-                                    dispatch(setCategoryFilter(value));  // 🚀 FILTER PRODUCTS HERE
+                                    dispatch(setCategoryFilter(value));
                                 }}
-
                             >
                                 {categoryList.map((c) => (
                                     <DropdownMenuRadioItem key={c} value={c}>
@@ -82,19 +75,17 @@ export function AppSidebar({ className }: AppSidebarProps) {
                     {/* Price Dropdown */}
                     <DropdownMenu>
                         <DropdownMenuLabel>Price</DropdownMenuLabel>
-
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" className="w-full justify-between">
                                 {selectedPrice}
                             </Button>
                         </DropdownMenuTrigger>
-
                         <DropdownMenuContent>
                             <DropdownMenuRadioGroup
                                 value={selectedPrice}
-                                onValueChange={(value) => {
+                                onValueChange={(value: string) => {
                                     setSelectedPrice(value);
-                                    dispatch(setPriceFilter(value)); // ✅ filter products without API
+                                    dispatch(setPriceFilter(value));
                                 }}
                             >
                                 {prices.map((p) => (
@@ -103,30 +94,33 @@ export function AppSidebar({ className }: AppSidebarProps) {
                                     </DropdownMenuRadioItem>
                                 ))}
                             </DropdownMenuRadioGroup>
-
                         </DropdownMenuContent>
                     </DropdownMenu>
 
                     <DropdownMenuSeparator />
 
-                    {/* Rating Dropdown */}
+                    {/* Rating Sort Dropdown */}
                     <DropdownMenu>
                         <DropdownMenuLabel>Rating</DropdownMenuLabel>
-
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" className="w-full justify-between">
-                                {selectedRating}
+                                {selectedRatingSort}
                             </Button>
                         </DropdownMenuTrigger>
-
                         <DropdownMenuContent>
                             <DropdownMenuRadioGroup
-                                value={selectedRating}
-                                onValueChange={setSelectedRating}
+                                value={selectedRatingSort}
+                                onValueChange={(value: string) => {
+                                    setSelectedRatingSort(value);
+                                    if (value === "High to Low") dispatch(setRatingSort("high-to-low"));
+                                    else if (value === "Low to High") dispatch(setRatingSort("low-to-high"));
+                                    else dispatch(setRatingSort(null)); 
+                                }}
+
                             >
-                                {ratings.map((r) => (
-                                    <DropdownMenuRadioItem key={r} value={r}>
-                                        {r}
+                                {ratingSortOptions.map((option) => (
+                                    <DropdownMenuRadioItem key={option} value={option}>
+                                        {option}
                                     </DropdownMenuRadioItem>
                                 ))}
                             </DropdownMenuRadioGroup>
@@ -135,5 +129,5 @@ export function AppSidebar({ className }: AppSidebarProps) {
                 </SidebarGroupContent>
             </SidebarGroup>
         </Sidebar>
-    )
+    );
 }
