@@ -27,12 +27,9 @@ export default function ClientProviders({ children }: { children: React.ReactNod
 
           {/* Sidebar remains normal ✅ */}
           <AppSidebar className="top-14 h-[calc(100vh-64px)]" />
+            <SidebarTrigger  />
 
-          <SidebarTrigger className=""/>
-
-
-
-          <main className="w-full">{children}</main>
+            <main className="w-full">{children}</main>
 
         </SidebarProvider>
 

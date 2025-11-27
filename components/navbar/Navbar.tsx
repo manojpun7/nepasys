@@ -34,7 +34,7 @@ export default function Navbar() {
   };
 
   return (
-    <div className="flex justify-evenly items-center m-2 sticky top-0 z-10 bg-background/95 backdrop-blur border-b">
+    <div className="flex justify-evenly items-center pb-3 m-2 sticky top-0 z-10 bg-background/95 backdrop-blur border-b">
 
       {/* ✅ LOGO */}
       <TooltipProvider>

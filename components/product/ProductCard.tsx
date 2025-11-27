@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
 import { useAppDispatch } from "@/lib/store/hooks";
 import { addToCart } from "@/lib/cart/cartSlice";
-
+import { toast } from "sonner"; 
 type ProductType = {
   id: number;
   title: string;
@@ -19,12 +19,11 @@ type ProductType = {
   brand: string;
   category: string;
   thumbnail: string;
-  images: string[]
+  images: string[];
 };
 
 export default function ProductCard({ product }: { product: ProductType }) {
-
-    const dispatch = useAppDispatch();
+  const dispatch = useAppDispatch();
 
   const handleAdd = () => {
     dispatch(
@@ -36,9 +35,13 @@ export default function ProductCard({ product }: { product: ProductType }) {
         category: product.category,
       })
     );
+
+    toast.success("Cart item added successfully !");
   };
+
   return (
-    <Card className="rounded-xl overflow-hidden bg-card text-card-foreground border hover:shadow-xl transition-all duration-300">
+    <Card className=" flex flex-col h-full rounded-xl overflow-hidden bg-card text-card-foreground border hover:shadow-xl transition-all duration-300">
+
       {/* Thumbnail */}
       <CardHeader className="p-0">
         <div className="relative h-48 w-full bg-muted">
@@ -49,29 +52,27 @@ export default function ProductCard({ product }: { product: ProductType }) {
             className="object-cover"
           />
 
-          <Badge
-            className="absolute top-3 right-3 bg-primary text-primary-foreground shadow-md"
-          >
+          <Badge className="absolute top-3 right-3 bg-primary text-primary-foreground shadow-md">
             {product.category}
           </Badge>
         </div>
       </CardHeader>
 
       {/* Body */}
-      <CardContent className="p-4 space-y-2">
-        <h2 className="font-semibold text-lg">{product.title}</h2>
+      <CardContent className="flex flex-col grow p-4 space-y-2">
+        <h2 className="font-semibold text-lg truncate">{product.title}</h2>
 
         <p className="text-sm text-muted-foreground line-clamp-2">
           {product.description}
         </p>
 
-        {/* Rating */}
+        {/* ⭐ Rating */}
         <div className="flex items-center gap-1 text-yellow-500 mt-1">
           <Star size={16} fill="currentColor" />
           <span className="text-sm font-medium">{product.rating}</span>
         </div>
 
-        {/* Price Section */}
+        {/* 💰 Price Section */}
         <div className="flex items-center justify-between mt-3">
           <p className="text-xl font-bold">${product.price}</p>
 
@@ -79,6 +80,9 @@ export default function ProductCard({ product }: { product: ProductType }) {
             -{product.discountPercentage}%
           </Badge>
         </div>
+
+        {/* Spacer */}
+        <div className="mt-auto"></div>
       </CardContent>
 
       {/* Footer */}
@@ -87,6 +91,7 @@ export default function ProductCard({ product }: { product: ProductType }) {
           Add to Cart
         </Button>
       </CardFooter>
+
     </Card>
   );
 }
