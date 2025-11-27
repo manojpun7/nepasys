@@ -1,9 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { ProductType } from "@/lib/types/Product";
 
-// --------------------
-// STATE TYPE
-// --------------------
 export interface ProductsState {
   items: ProductType[];
   filteredItems: ProductType[];
@@ -14,13 +11,11 @@ export interface ProductsState {
   searchTerm: string;
   selectedCategory: string;
   selectedPrice: string;
-  selectedRating: string;   // Minimum rating filter
-  ratingSort: "high-to-low" | "low-to-high" | null; // New sorting field
+  selectedRating: string;
+  ratingSort: "high-to-low" | "low-to-high" | null;
+  categoryOptions: string[]; // ✅ dynamic category list
 }
 
-// --------------------
-// INITIAL STATE
-// --------------------
 const initialState: ProductsState = {
   items: [],
   filteredItems: [],
@@ -32,12 +27,10 @@ const initialState: ProductsState = {
   selectedCategory: "All",
   selectedPrice: "All",
   selectedRating: "All",
-  ratingSort: null,  // Default: no sorting
+  ratingSort: null,
+  categoryOptions: [], // default empty, filled from API later ✅
 };
 
-// --------------------
-// FETCH PRODUCTS THUNK
-// --------------------
 export const fetchProducts = createAsyncThunk<ProductType[], number>(
   "products/fetchProducts",
   async (limit: number) => {
@@ -49,9 +42,6 @@ export const fetchProducts = createAsyncThunk<ProductType[], number>(
   }
 );
 
-// --------------------
-// REDUX SLICE
-// --------------------
 const productsSlice = createSlice({
   name: "products",
   initialState,
@@ -85,15 +75,15 @@ const productsSlice = createSlice({
       productsSlice.caseReducers.applyFilters(state);
     },
 
-    // --------------------
-    // APPLY FILTERS LOCALLY
-    // --------------------
     applyFilters(state) {
-      let temp = state.items;
+      let temp = [...state.items];
 
-      // Category filter
+      // ✅ CATEGORY FILTER FIXED
       if (state.selectedCategory !== "All") {
-        temp = temp.filter((p) => p.category === state.selectedCategory);
+        temp = temp.filter(
+          (p) =>
+            p.category?.toLowerCase() === state.selectedCategory.toLowerCase()
+        );
       }
 
       // Price filter
@@ -115,10 +105,10 @@ const productsSlice = createSlice({
         });
       }
 
-      // Rating filter (minimum rating)
+      // Minimum rating filter
       if (state.selectedRating !== "All") {
         temp = temp.filter((p) => {
-          const rating = p.rating; // assuming p.rating is a number 1-5
+          const rating = p.rating;
           switch (state.selectedRating) {
             case "4 Stars & Up": return rating >= 4;
             case "3 Stars & Up": return rating >= 3;
@@ -129,20 +119,21 @@ const productsSlice = createSlice({
         });
       }
 
-      // Search filter
+      // Search
       if (state.searchTerm.trim()) {
         const term = state.searchTerm.toLowerCase();
         temp = temp.filter((p) => p.title.toLowerCase().includes(term));
       }
 
-      // Rating sort
+      // ✅ Rating sorting
       if (state.ratingSort === "high-to-low") {
-        temp = temp.slice().sort((a, b) => b.rating - a.rating);
+        temp = temp.sort((a, b) => b.rating - a.rating);
       } else if (state.ratingSort === "low-to-high") {
-        temp = temp.slice().sort((a, b) => a.rating - b.rating);
+        temp = temp.sort((a, b) => a.rating - b.rating);
       }
 
       state.filteredItems = temp;
+      state.hasMore = temp.length >= state.limit;
     },
   },
 
@@ -155,13 +146,22 @@ const productsSlice = createSlice({
           state.loadingMore = true;
         }
       })
-      .addCase(fetchProducts.fulfilled, (state, action: PayloadAction<ProductType[]>) => {
+
+      // ✅ FULL LOGIC FIXED HERE
+      .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loadingInitial = false;
         state.loadingMore = false;
         state.items = action.payload;
-        state.hasMore = action.payload.length >= state.limit;
+
+        // ✅ Extract real categories from random products API
+        const realCategories = Array.from(
+          new Set(action.payload.map((p) => p.category))
+        );
+
+        state.categoryOptions = realCategories; // ✅ stored for sidebar
         productsSlice.caseReducers.applyFilters(state);
       })
+
       .addCase(fetchProducts.rejected, (state) => {
         state.loadingInitial = false;
         state.loadingMore = false;
@@ -169,16 +169,13 @@ const productsSlice = createSlice({
   },
 });
 
-// --------------------
-// EXPORT ACTIONS
-// --------------------
 export const {
   increaseLimit,
   setSearchTerm,
   setCategoryFilter,
   setPriceFilter,
   setRatingFilter,
-  setRatingSort, // new action
+  setRatingSort, // ✅ correct export now
 } = productsSlice.actions;
 
 export default productsSlice.reducer;
