@@ -79,7 +79,7 @@ export default function ProductsPage() {
             onClick={() => dispatch(increaseLimit())}
             disabled={loadingMore}
           >
-            {loadingMore ? "Loading..." : "Load More"}
+            {loadingMore ? "Loading..." : "loading"}
           </Button>
         </div>
       )}
